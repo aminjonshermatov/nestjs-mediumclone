@@ -136,6 +136,8 @@ export class ArticleService {
   }
 
   buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
+    delete article.author.id;
+
     return { article };
   }
 

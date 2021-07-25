@@ -3,8 +3,8 @@ import { NextFunction, Response } from "express";
 import { verify } from "jsonwebtoken";
 
 import { ExpressRequestInterface } from "@app/types/expressRequest.interface";
-import { JWT_SECRET } from "@app/config";
 import { UserService } from "@app/user/user.service";
+import { JWT_SECRET } from "@app/config";
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
@@ -20,10 +20,17 @@ export class AuthMiddleware implements NestMiddleware {
       return;
     }
 
-    const [, token = ''] = req.headers.authorization.split(' ') || ['hi', ''];
+    // sample example of authorization header:
+    // Authorization: Token jwt.token.here
+    const result = (req.headers.authorization || '').split(' ');
+
+    if (!result || result.length < 2 || result[0] !== 'Token') {
+      req.user = null;
+      next();
+    }
 
     try {
-      const decode = verify(token, JWT_SECRET);
+      const decode = verify(result[1], JWT_SECRET);
       req.user = await this.userService.findById(decode.id || '') || null;
       next();
     } catch (e) {
