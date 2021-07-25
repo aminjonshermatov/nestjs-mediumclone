@@ -90,12 +90,12 @@ export class UserService {
   }
 
   public buildUserResponse(user: UserEntity): UserResponseInterface {
-    if (user.id) {
-      delete user.id;
-    }
+    const fieldsForRemove = ['password', 'id'];
 
-    if (user.password) {
-      delete user.password;
+    for (const fieldForRemove of fieldsForRemove) {
+      if (user[fieldForRemove]) {
+        delete user[fieldForRemove];
+      }
     }
 
     return {
