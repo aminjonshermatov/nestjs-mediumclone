@@ -46,25 +46,6 @@ export class UserService {
     return await this.userRepository.save(newUser);
   }
 
-  private generateJwt(user: UserEntity): string {
-    return sign({
-      id: user.id,
-      username: user.username,
-      email: user.email
-    }, JWT_SECRET);
-  }
-
-  public buildUserResponse(user: UserEntity): UserResponseInterface {
-    delete user.id;
-
-    return {
-      user: {
-        ...user,
-        token: this.generateJwt(user)
-      }
-    };
-  }
-
   async login(loginUserDto: LoginUserDto): Promise<UserEntity> {
     const errorResponse = {
       errors: {
@@ -86,7 +67,6 @@ export class UserService {
       throw new HttpException(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
-    delete user.password;
     return user;
   }
 
@@ -99,5 +79,30 @@ export class UserService {
     Object.assign(user, updateUserDto);
 
     return await this.userRepository.save(user);
+  }
+
+  private static generateJwt(user: UserEntity): string {
+    return sign({
+      id: user.id,
+      username: user.username,
+      email: user.email
+    }, JWT_SECRET);
+  }
+
+  public buildUserResponse(user: UserEntity): UserResponseInterface {
+    if (user.id) {
+      delete user.id;
+    }
+
+    if (user.password) {
+      delete user.password;
+    }
+
+    return {
+      user: {
+        ...user,
+        token: UserService.generateJwt(user)
+      }
+    };
   }
 }
