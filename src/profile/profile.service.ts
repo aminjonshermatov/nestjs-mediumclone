@@ -23,17 +23,18 @@ export class ProfileService {
       throw new HttpException('Profile does not exist', HttpStatus.NOT_FOUND);
     }
 
-    const follow = await this.followRepository.findOne({
-      followerId: currentUserId,
-      followingId: user.id
-    });
+    let following = false;
 
-    return { ...user, following: Boolean(follow) };
-  }
+    if (currentUserId) {
+      const follow = await this.followRepository.findOne({
+        followerId: currentUserId,
+        followingId: user.id
+      });
 
-  buildProfileResponse(profile: ProfileType): ProfileResponseInterface {
-    delete profile.email;
-    return { profile };
+      following = !!follow;
+    }
+
+    return { ...user, following };
   }
 
   async followProfile(currentUserId: number, profileUsername: string): Promise<ProfileType> {
@@ -57,7 +58,7 @@ export class ProfileService {
     if (!follow) {
       const followToCreate = new FollowEntity();
       followToCreate.followerId = currentUserId;
-      followToCreate.followingId = user.id
+      followToCreate.followingId = user.id;
 
       await this.followRepository.save(followToCreate);
     }
@@ -87,5 +88,17 @@ export class ProfileService {
     });
 
     return { ...user, following: false };
+  }
+
+  buildProfileResponse(profile: ProfileType): ProfileResponseInterface {
+    const fieldsForRemove = ['email', 'id'];
+
+    for (const fieldForRemove of fieldsForRemove) {
+      if (profile[fieldForRemove]) {
+        delete profile[fieldForRemove];
+      }
+    }
+
+    return { profile };
   }
 }
