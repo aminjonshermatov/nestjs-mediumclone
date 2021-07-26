@@ -10,6 +10,8 @@ import { FollowEntity } from "@app/profile/follow.entity";
 import { CreateArticleDto } from "@app/article/dto/createArticle.dto";
 import { ArticleResponseInterface } from "@app/article/types/articleResponse.interface";
 import { ArticlesResponseInterface } from "@app/article/types/articlesResponse.interface";
+import { ArticleListQueryDto } from "@app/article/dto/articleListQuery.dto";
+import { FeedArticlesDto } from "@app/article/dto/feedArticles.dto";
 
 @Injectable()
 export class ArticleService {
@@ -20,7 +22,7 @@ export class ArticleService {
     @InjectRepository(FollowEntity) private readonly followRepository: Repository<FollowEntity>
   ) { }
 
-  async findAll(currentUserId: number, query: any): Promise<ArticlesResponseInterface> {
+  async findAll(currentUserId: number, query: ArticleListQueryDto): Promise<ArticlesResponseInterface> {
     const queryBuilder = getRepository(ArticleEntity)
       .createQueryBuilder('articles')
       .leftJoinAndSelect('articles.author', 'author');
@@ -69,15 +71,13 @@ export class ArticleService {
     let favoriteIds: number[] = [];
 
     if (currentUserId) {
-      const currentUser = await this.userRepository.findOne(currentUserId, {
-        relations: ['favorites']
-      });
+      const currentUser = await this.userRepository.findOne(currentUserId, { relations: ['favorites'] });
 
       favoriteIds = (currentUser || { favorites: [] }).favorites.map(favoriteArticle => favoriteArticle.id);
     }
 
     const articles = await queryBuilder.getMany();
-    const articlesWithFavorites = articles.map(article => {
+    const articlesWithFavorites = (articles || []).map(article => {
       const favorited = favoriteIds.includes(article.id);
       return { ...article, favorited };
     });
@@ -85,7 +85,7 @@ export class ArticleService {
     return { articles: articlesWithFavorites, articlesCount };
   }
 
-  async getFeed(currentUserId: number, query: any): Promise<ArticlesResponseInterface> {
+  async getFeed(currentUserId: number, query: FeedArticlesDto): Promise<ArticlesResponseInterface> {
     const follows = await this.followRepository.find({
       followerId: currentUserId
     });
@@ -203,6 +203,11 @@ export class ArticleService {
 
   async deleteArticleFromFavorites(slug: string, currentUserId: number): Promise<ArticleEntity> {
     const article = await this.findBySlug(slug);
+
+    if (!slug) {
+      throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
+    }
+
     const user = await this.userRepository.findOne(currentUserId, {
       relations: ['favorites']
     });
