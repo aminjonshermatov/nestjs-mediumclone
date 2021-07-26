@@ -19,6 +19,8 @@ import { CreateArticleDto } from "@app/article/dto/createArticle.dto";
 import { ArticleResponseInterface } from "@app/article/types/articleResponse.interface";
 import { ArticlesResponseInterface } from "@app/article/types/articlesResponse.interface";
 import { BackendValidationPipe } from "@app/shared/pipes/backendValidation.pipe";
+import { ArticleListQueryDto } from "@app/article/dto/articleListQuery.dto";
+import { FeedArticlesDto } from "@app/article/dto/feedArticles.dto";
 
 @Controller('articles')
 export class ArticleController {
@@ -30,7 +32,7 @@ export class ArticleController {
   @Get()
   async findAll(
     @User('id') currentUserId: number,
-    @Query() query: any
+    @Query() query: ArticleListQueryDto
   ): Promise<ArticlesResponseInterface> {
     return this.articleService.findAll(currentUserId, query);
   }
@@ -39,7 +41,7 @@ export class ArticleController {
   @UseGuards(AuthGuard)
   async getFeed(
     @User('id') currentUserId: number,
-    @Query() query: any
+    @Query() query: FeedArticlesDto
   ): Promise<ArticlesResponseInterface> {
     return this.articleService.getFeed(currentUserId, query);
   }
