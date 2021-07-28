@@ -13,7 +13,7 @@ import { CreateUserDto } from "@app/user/dto/createUser.dto";
 import { UserResponseInterface } from "@app/user/types/userResponse.interface";
 import { LoginUserDto } from "@app/user/dto/loginUser.dto";
 import { User } from "@app/user/decorators/user.decorator";
-import { UserEntity } from "@app/user/user.entity";
+import { UserEntity } from "@app/user/entities/user.entity";
 import { AuthGuard } from "@app/user/guards/auth.guard";
 import { UpdateUserDto } from "@app/user/dto/updateUser.dto";
 import { BackendValidationPipe } from "@app/shared/pipes/backendValidation.pipe";
