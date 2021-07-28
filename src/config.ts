@@ -1,1 +1,1 @@
-export const JWT_SECRET = 'secret_code';
+export const JWT_SECRET = process.env.JWT_SEVRET;

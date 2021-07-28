@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, RequestMethod } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from "@app/app.controller";
 import { AppService } from "@app/app.service";
@@ -12,6 +13,7 @@ import { ProfileModule } from "@app/profile/profile.module";
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     TypeOrmModule.forRoot(ormConfig),
     TagModule,
     UserModule,

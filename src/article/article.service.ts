@@ -4,14 +4,19 @@ import { DeleteResult, getRepository, Repository } from "typeorm";
 
 import slugify from 'slugify';
 
-import { UserEntity } from "@app/user/user.entity";
-import { ArticleEntity } from "@app/article/article.entity";
-import { FollowEntity } from "@app/profile/follow.entity";
+import { UserEntity } from "@app/user/entities/user.entity";
+import { ArticleEntity } from "@app/article/entities/article.entity";
+import { FollowEntity } from "@app/profile/entities/follow.entity";
 import { CreateArticleDto } from "@app/article/dto/createArticle.dto";
 import { ArticleResponseInterface } from "@app/article/types/articleResponse.interface";
 import { ArticlesResponseInterface } from "@app/article/types/articlesResponse.interface";
 import { ArticleListQueryDto } from "@app/article/dto/articleListQuery.dto";
 import { FeedArticlesDto } from "@app/article/dto/feedArticles.dto";
+import { CreateCommentDto } from "@app/article/dto/createComment.dto";
+import { CommentResponseInterface } from "@app/article/types/commentResponse.interface";
+import { CommentEntity } from "@app/article/entities/comment.entity";
+import { CommentsResponseInterface } from "@app/article/types/commentsResponse.interface";
+import { CommentType } from "@app/article/types/comment.type";
 
 @Injectable()
 export class ArticleService {
@@ -19,7 +24,8 @@ export class ArticleService {
   constructor(
     @InjectRepository(ArticleEntity) private readonly articleRepository: Repository<ArticleEntity>,
     @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(FollowEntity) private readonly followRepository: Repository<FollowEntity>
+    @InjectRepository(FollowEntity) private readonly followRepository: Repository<FollowEntity>,
+    @InjectRepository(CommentEntity) private readonly commentRepository: Repository<CommentEntity>
   ) { }
 
   async findAll(currentUserId: number, query: ArticleListQueryDto): Promise<ArticlesResponseInterface> {
@@ -69,17 +75,24 @@ export class ArticleService {
     }
 
     let favoriteIds: number[] = [];
+    let followingIds: number[] = [];
 
     if (currentUserId) {
       const currentUser = await this.userRepository.findOne(currentUserId, { relations: ['favorites'] });
 
       favoriteIds = (currentUser || { favorites: [] }).favorites.map(favoriteArticle => favoriteArticle.id);
+
+      const followings = await this.followRepository.find({ followerId: currentUserId }) || [];
+      followingIds = followings.map(following => following.followingId);
     }
 
     const articles = await queryBuilder.getMany();
     const articlesWithFavorites = (articles || []).map(article => {
       const favorited = favoriteIds.includes(article.id);
-      return { ...article, favorited };
+      const following = followingIds.includes(article.author.id);
+      delete article.author.id;
+      delete article.author.email;
+      return { ...article, author: { ...article.author, following }, favorited };
     });
 
     return { articles: articlesWithFavorites, articlesCount };
@@ -225,5 +238,72 @@ export class ArticleService {
     }
 
     return article;
+  }
+
+  async addComment(currentUserId: number, slug: string, createCommentDto: CreateCommentDto): Promise<CommentResponseInterface> {
+    const article = await this.findBySlug(slug);
+    if (!article) {
+      throw new HttpException('Couldn`t find article', HttpStatus.NOT_FOUND);
+    }
+
+    const user = await this.userRepository.findOne(currentUserId);
+
+    const comment = new CommentEntity();
+    Object.assign(comment, createCommentDto);
+
+    comment.author = user;
+    comment.article = article;
+
+    const savedComment = await this.commentRepository.save(comment);
+    delete savedComment.article;
+    delete savedComment.author.id;
+    delete savedComment.author.email;
+
+    savedComment.author['following'] = true;
+
+    return { comment: savedComment };
+  }
+
+  async getComments(currentUserId: number, slug: string): Promise<CommentsResponseInterface> {
+    const article = await this.articleRepository.findOne({ slug }, { relations: ['comments'] });
+
+    if (!slug) {
+      throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
+    }
+
+    let comments: CommentType[] = article.comments || [];
+
+    if (currentUserId) {
+      const followings = await this.followRepository.find({ followerId: currentUserId }) || [];
+
+      comments = comments.map(
+        comment => {
+          delete comment.author.id;
+          delete comment.author.email;
+
+          return followings.findIndex(following => following.followingId === comment.id) === -1
+            ? { ...comment, author: { ...comment.author, following: false } }
+            : { ...comment, author: { ...comment.author, following: true } };
+        }
+      );
+    }
+
+    return { comments };
+  }
+
+  async deleteCommentFromArticle(currentUser: UserEntity, slug: string, commentId: number) {
+    const article = await this.findBySlug(slug);
+
+    if (!article) {
+      throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
+    }
+
+    const comment = await this.commentRepository.findOne({ article, author: currentUser, id: commentId });
+
+    if (!comment) {
+      throw new HttpException('Comment not found', HttpStatus.NOT_FOUND);
+    }
+
+    return await this.commentRepository.remove(comment);
   }
 }

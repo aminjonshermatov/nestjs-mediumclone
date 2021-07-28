@@ -4,8 +4,8 @@ import { Repository } from "typeorm";
 
 import { ProfileType } from "@app/profile/types/profile.type";
 import { ProfileResponseInterface } from "@app/profile/types/profileResponse.interface";
-import { UserEntity } from "@app/user/user.entity";
-import { FollowEntity } from "@app/profile/follow.entity";
+import { UserEntity } from "@app/user/entities/user.entity";
+import { FollowEntity } from "@app/profile/entities/follow.entity";
 
 @Injectable()
 export class ProfileService {

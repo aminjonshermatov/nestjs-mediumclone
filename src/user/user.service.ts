@@ -5,7 +5,7 @@ import {sign} from 'jsonwebtoken';
 import {compare} from 'bcrypt';
 
 import { CreateUserDto } from "@app/user/dto/createUser.dto";
-import { UserEntity } from "@app/user/user.entity";
+import { UserEntity } from "@app/user/entities/user.entity";
 import { JWT_SECRET } from "@app/config";
 import { UserResponseInterface } from "@app/user/types/userResponse.interface";
 import { LoginUserDto } from "@app/user/dto/loginUser.dto";
@@ -90,17 +90,11 @@ export class UserService {
   }
 
   public buildUserResponse(user: UserEntity): UserResponseInterface {
-    const fieldsForRemove = ['password', 'id'];
-
-    for (const fieldForRemove of fieldsForRemove) {
-      if (user[fieldForRemove]) {
-        delete user[fieldForRemove];
-      }
-    }
+    const { id, password, ...other } = user;
 
     return {
       user: {
-        ...user,
+        ...other,
         token: UserService.generateJwt(user)
       }
     };
