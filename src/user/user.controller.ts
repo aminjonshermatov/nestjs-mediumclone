@@ -18,13 +18,13 @@ import { AuthGuard } from "@app/user/guards/auth.guard";
 import { UpdateUserDto } from "@app/user/dto/updateUser.dto";
 import { BackendValidationPipe } from "@app/shared/pipes/backendValidation.pipe";
 
-@Controller()
+@Controller('users')
 export class UserController {
   constructor(
     private readonly userService: UserService
   ) { }
 
-  @Post('users')
+  @Post()
   @UsePipes(new BackendValidationPipe())
   async createUser(
     @Body('user') createUserDto: CreateUserDto
@@ -33,7 +33,7 @@ export class UserController {
     return this.userService.buildUserResponse(user);
   }
 
-  @Post('users/login')
+  @Post('login')
   @UsePipes(new BackendValidationPipe())
   async login(
     @Body('user') loginUserDto: LoginUserDto
@@ -42,7 +42,7 @@ export class UserController {
     return this.userService.buildUserResponse(user);
   }
 
-  @Get('user')
+  @Get()
   @UseGuards(AuthGuard)
   async currentUser(
     @User() user: UserEntity
@@ -50,7 +50,7 @@ export class UserController {
     return this.userService.buildUserResponse(user);
   }
 
-  @Put('user')
+  @Put()
   @UseGuards(AuthGuard)
   async updateUser(
     @User('id') currentUserId: number,

@@ -24,7 +24,8 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository. <br/>
+Nest REST APIs [Medium](https://medium.com/) clone
 
 ## Installation
 
@@ -43,6 +44,18 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+
+# generate migration
+$ npm run db:create
+
+# migrate
+$ npm run db:migrate
+
+# drop migration
+$ npm run db:drop
+
+# seed data
+$ npm run db:seed
 ```
 
 ## Test
@@ -57,6 +70,225 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+## Endpoints
+
+
+### Article endpoints
+
+
+#### Find all articles
+```
+Get  /articles?tag={tag}&author={author}&favorited={favorited}&limit={limit}&offset={offset}
+Accept: application/json
+Content-Type: application/json
+
+```
+
+#### Get Feeds
+```
+Get  /articles/feed?limit={limit}&offset={offset}
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+#### Create a article 
+```
+Post  /articles
+Accept: application/json
+Content-Type: application/json
+
+{
+    "title" : "NestJs authentication with OAuth2",
+    "description" : "Sample Authntication for NestJs project",
+    "body": "Some article body",
+    "tagList": ["NestJs", "OAuth2", "rest-api", "Authentication"]
+}
+
+```
+
+
+#### Get article by slug
+```
+Get  /articles/{slug}
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+#### Delete article
+```
+Delete  /articles/{slug}
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+#### Update article
+```
+Put  /articles/{slug}
+Accept: application/json
+Content-Type: application/json
+
+{
+    "title" : "NestJs authentication with OAuth2",
+    "description" : "Sample Authntication for NestJs project",
+    "body": "Some article body",
+    "tagList": ["NestJs", "OAuth2", "rest-api", "Authentication"]
+}
+
+```
+
+
+#### Add article to favorites
+```
+Post  /articles/{slug}/favorite
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+#### Remove article from favorites
+```
+Delete  /articles/{slug}/favorite
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+#### Add comment to article
+```
+Post  /articles/{slug}/comments
+Accept: application/json
+Content-Type: application/json
+
+{
+    "body": "Some comment body",
+}
+
+```
+
+
+#### Delete comment from article
+```
+Delete  /articles/{slug}/comments/{commentId}
+Accept: application/json
+Content-Type: application/json
+
+{
+    "body": "Some comment body",
+}
+
+```
+
+
+### Profile endpoints
+
+
+#### Get profile
+```
+Get  /profiles/{username}
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+#### Follow to user
+```
+Post  /profiles/{username}/follow
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+#### Unfollow from user
+```
+Delete  /profiles/{username}/follow
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+### Tags endpoints
+
+
+#### Get Tags list
+```
+Get  /tags
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+### Users endpoints
+
+
+#### Create user
+```
+Post  /users
+Accept: application/json
+Content-Type: application/json
+
+{
+    "username": "john",
+    "email": "john@gmail.com",
+    "password": "$3cR3tP@$$w0rD"
+}
+
+```
+
+
+#### Login
+```
+Post  /users/login
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "john@gmail.com",
+    "password": "$3cR3tP@$$w0rD"
+}
+
+```
+
+
+#### Get current user details
+```
+Get  /users
+Accept: application/json
+Content-Type: application/json
+
+```
+
+
+#### Update user
+```
+Put  /users
+Accept: application/json
+Content-Type: application/json
+
+{
+    "user": {
+        "email": "john@gmail.com",
+        "username": "john",
+        "password": "n3Wp@$$w0rD",
+        "image": "https://mediumclone.s3.us-west-2.amazonaws.com/john.png",
+        "bio": "tl;dr good boy)"
+    } 
+}
+
+```
+
 
 ## Support
 
